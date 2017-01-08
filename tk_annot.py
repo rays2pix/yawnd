@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import ttk
+import tkMessageBox
 from tkinter import filedialog
 import glob
 import os
@@ -19,6 +20,7 @@ class Annotator:
         self.create_image_widgets()
         self.create_scroll_widgets()
         self.current_clip = {} ## dict {'num_frames','name','annotations'}
+        self.gt_dir = None
 
     def create_mainframes(self):
         print "Creating all mainframes"
@@ -42,17 +44,26 @@ class Annotator:
         self.buttons_frame = buttons_frame
         self.scroll_frame = scroll_frame
         self.image_frame = image_frame
-    
+   
+
+
+    def get_active_frame(self):
+        if self.current_clip['activeframe'] :
+            return int(np.round(self.current_clip['activeframe']))
+        else:
+            return 1
+         
     def display_image(self):
 
-        self.cap.set(cv2.CAP_PROP_POS_FRAMES, self.current_clip['activeframe'])
+        self.cap.set(cv2.CAP_PROP_POS_FRAMES, self.get_active_frame())
         ret,frame = self.cap.read()
         if frame is None:
             print self.current_clip['activeframe'] , self.current_clip['num_frames']
             return
         print frame.shape
         tk_image = self.get_tk_image(frame)
-
+        current_gt = self.current_clip['gt'][self.get_active_frame()]
+        self.action.set(current_gt)
         self.image_label.configure(image = tk_image)
         self.image_label.image=tk_image
         
@@ -61,6 +72,21 @@ class Annotator:
         ptr = self.stop_value.get()
         self.stop_label.configure(text=ptr)
 
+    def load_action(self):
+        if self.gt_dir is None:
+            tkMessageBox.showinfo("Error","Please select a ground truth directory before proceeding")
+            self.current_clip['gt']=  [1] * (self.current_clip['num_frames'])
+            return
+        clip_name = self.current_clip_name.get()
+        clip_name = clip_name.split('/')
+        clip_name = clip_name[-1].split('.')[0]
+        gt_path = os.path.join(self.gt_dir,clip_name)
+        print clip_name
+        if os.path.isfile(gt_path):
+            self.current_clip['gt'] =  joblib.load(gt_path)
+        else:
+           self.current_clip['gt']=  [1] * self.current_clip['num_frames']
+
     def update_current_clip(self,clip_name):
 
         self.current_clip_name.set(clip_name)
@@ -68,10 +94,11 @@ class Annotator:
 
 
         num_frames = self.cap.get(cv2.CAP_PROP_FRAME_COUNT)
-        self.current_clip['num_frames'] = num_frames
+        self.current_clip['num_frames'] = int(num_frames)
         self.current_clip['name'] =clip_name
         self.current_clip['activeframe']=0
-        self.current_clip['gt'] = [0]*int(num_frames)
+
+        self.load_action()
         self.display_image()
 
         self.start_scale.configure(to=num_frames)
@@ -94,21 +121,33 @@ class Annotator:
 
     def gt_dir_callback(self):
         self.gt_dir = filedialog.askdirectory()
-
+        self.load_action()
 
     def annotate(self):
         start = int(self.start_scale.get())
         stop  = int(self.stop_scale.get())
         print start,stop
-        pdb.set_trace()
+        if start > stop:
+            tkMessageBox.showerror("Error","Start frame should be less than stop frame")
+            return
         self.current_clip['gt'][start:stop+1]= [self.action.get()] * (stop-start+1)
 
 
 
-
     def save_gt(self):
-        joblib.dump(self.current_clip['gt'],'gt.np')
-
+        if not self.gt_dir:
+            print "Please select ground truth directory"
+        clip_name = self.current_clip_name.get()
+        clip_name = clip_name.split('/')
+        clip_name = clip_name[-1].split('.')[0]
+        gt_path = os.path.join(self.gt_dir,clip_name)
+        print clip_name
+        #gt_file = open(gt_path,'w')
+        #for i,gt in enumerate(self.current_clip['gt']):
+        #    gt_file.write(("%d,%d\n"%(i,gt)))
+        #gt_file.close()
+        joblib.dump(self.current_clip['gt'],gt_path)
+        
     def get_next_clip(self):
         
         self.current_clip_index += 1
@@ -119,7 +158,7 @@ class Annotator:
             self.update_current_clip(self.video_files[self.current_clip_index])
 
     def create_button_widgets(self):
-        source_dir_button = ttk.Button(self.buttons_frame,text='Open Video Directory', command=self.dir_callback)
+        source_dir_button = ttk.Button(self.buttons_frame,text='Open Video Directory',command=self.dir_callback)
         source_dir_button.grid(column=0,row=0)
         source_dir_button.columnconfigure(0,weight=1)
         source_dir_button.rowconfigure(0,weight=1)
@@ -138,7 +177,7 @@ class Annotator:
         rb2.grid(row=0,column=1)
         rb3 = ttk.Radiobutton(radio_button_frame, text="Yawn", variable=self.action, value=3)
         rb3.grid(row=0,column=2)
-
+        self.action.set(3)
         self.current_clip_name = StringVar()
         self.current_clip_name.set("Select the video directory")
         clip_label = ttk.Label(self.buttons_frame,textvariable=self.current_clip_name)
