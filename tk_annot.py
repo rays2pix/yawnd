@@ -68,8 +68,10 @@ class Annotator:
         self.image_label.image=tk_image
         
         ptr = self.start_value.get()
+        print ptr
         self.start_label.configure(text=ptr)
         ptr = self.stop_value.get()
+        print ptr
         self.stop_label.configure(text=ptr)
 
     def load_action(self):
@@ -208,11 +210,19 @@ class Annotator:
         tk_image = ImageTk.PhotoImage(pil_image)
         return tk_image
 
-    def move_frames(self,val):
+    def move_frames_start(self,val):
         frame_num = self.start_value.get()
+        print frame_num , val
         self.current_clip['activeframe'] = np.round(float(val))
         self.display_image() 
 
+    def move_frames_stop(self,val):
+        frame_num = self.stop_value.get()
+        print frame_num , val
+        self.current_clip['activeframe'] = np.round(float(val))
+        self.display_image()
+
+ 
     def create_image_widgets(self):
         
         sample_image=cv2.imread('./yaww_sample.png')
@@ -235,7 +245,7 @@ class Annotator:
         ptr = self.start_value.get()
         start_value_label = ttk.Label(self.scroll_frame,text=ptr)
         start_value_label.grid(row=0,column=1)
-        start_scale = ttk.Scale(self.scroll_frame,orient = HORIZONTAL,length=700,from_=0,to=200,variable=self.start_value,command=self.move_frames)
+        start_scale = ttk.Scale(self.scroll_frame,orient = HORIZONTAL,length=700,from_=0,to=200,variable=self.start_value,command=self.move_frames_start)
         start_scale.grid(row=0,column=2)
         end_label = ttk.Label(self.scroll_frame,text="Action Stop")
         end_label.grid(row=1,column=0)
@@ -243,7 +253,7 @@ class Annotator:
         ptr=self.stop_value.get() 
         end_value_label = ttk.Label(self.scroll_frame,text=ptr)
         end_value_label.grid(row=1,column=1)
-        stop_scale = ttk.Scale(self.scroll_frame,orient = HORIZONTAL,length=700,from_=0,to=200,variable=self.stop_value,command=self.move_frames)
+        stop_scale = ttk.Scale(self.scroll_frame,orient = HORIZONTAL,length=700,from_=0,to=200,variable=self.stop_value,command=self.move_frames_stop)
         stop_scale.grid(row=1,column=2)
         self.stop_scale = stop_scale
         self.start_scale = start_scale
