@@ -46,6 +46,7 @@ class Landmarks:
         imgsize[1] = image.shape[1]-1
         TotalSize = np.zeros((faceNum,2))
         landmarks = []
+        colorface =None
         for i in range(0,faceNum):
             TotalSize[i] = imgsize
         for i in range(0,faceNum):
@@ -72,7 +73,7 @@ class Landmarks:
         level1Point = batchRecoverPart(predictpoints,bboxs,TotalSize,M_left,M_right,M_top,M_bottom,vgg_height,vgg_width)
 
         landmarks.append([faceNum,level1Point,predictpose])
-        return landmarks
+        return landmarks,colorface
 
 
 def get_features(input_dir,output_dir,lnet):
@@ -96,20 +97,15 @@ def get_features(input_dir,output_dir,lnet):
             n=n+1    
             print n,frame.shape
             lmarks = lnet.get_landmarks(frame)
-            landmarks[n]= lmarks
-            #detector = dlib.get_frontal_face_detector()
-            #dets = detector(frame,1)
-            #if  len(dets) > 1:
-            #    print "frame %s has > 1 det" % n
-                
-            #if len(dets) == 0:
+            landmarks[n],face= lmarks
+            image_name = '%s_%d.png' % (clip_name,n)
+            cv2.imwrite(os.path.join(output_dir,"faces",image_name),face)
             #    print "frame %s has no  det" % n
                 
         #print clip_name        
         clip_name = '%s' % clip_name
         joblib.dump(landmarks,os.path.join(output_dir, clip_name))
-
-
+        
 
 
 
