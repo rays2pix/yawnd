@@ -21,7 +21,15 @@ class Annotator:
         self.create_scroll_widgets()
         self.current_clip = {} ## dict {'num_frames','name','annotations'}
         self.gt_dir = None
+        self.cv2_version = self.get_opencv_version()
 
+
+    def get_opencv_version(self):
+        version = cv2.__version__.split('.')
+        if version[0] == '2':
+            return 2
+        else:
+            return 3
     def create_mainframes(self):
         print "Creating all mainframes"
         buttons_frame = ttk.Frame(self.root,padding="3 3 12 12")
@@ -54,8 +62,10 @@ class Annotator:
             return 1
          
     def display_image(self):
-
-        self.cap.set(cv2.CAP_PROP_POS_FRAMES, self.get_active_frame())
+        if self.cv2_version == 3:
+            self.cap.set(cv2.CAP_PROP_POS_FRAMES, self.get_active_frame())
+        else:
+            self.cap.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, self.get_active_frame())
         ret,frame = self.cap.read()
         if frame is None:
             print self.current_clip['activeframe'] , self.current_clip['num_frames']
@@ -94,8 +104,10 @@ class Annotator:
         self.current_clip_name.set(clip_name)
         self.cap = cv2.VideoCapture(clip_name)
 
-
-        num_frames = self.cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        if self.cv2_version == 3:
+            num_frames = self.cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        else:
+            num_frames = self.cap.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT)
         self.current_clip['num_frames'] = int(num_frames)
         self.current_clip['name'] =clip_name
         self.current_clip['activeframe']=0
