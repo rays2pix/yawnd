@@ -243,7 +243,7 @@ class Annotator:
         self.stop_value=IntVar()
         self.stop_value.set(10)
         ptr = self.start_value.get()
-        start_value_label = ttk.Label(self.scroll_frame,textvariable=self.start_value)
+        start_value_label = ttk.Label(self.scroll_frame,textvariable=self.start_value,width=30)
         start_value_label.grid(row=0,column=1)
         start_scale = ttk.Scale(self.scroll_frame,orient = HORIZONTAL,length=700,from_=0,to=200,variable=self.start_value,command=self.move_frames_start)
         start_scale.grid(row=0,column=2)
@@ -251,7 +251,7 @@ class Annotator:
         end_label.grid(row=1,column=0)
 
         ptr=self.stop_value.get() 
-        end_value_label = ttk.Label(self.scroll_frame,textvariable=self.stop_value)
+        end_value_label = ttk.Label(self.scroll_frame,textvariable=self.stop_value,width=30)
         end_value_label.grid(row=1,column=1)
         stop_scale = ttk.Scale(self.scroll_frame,orient = HORIZONTAL,length=700,from_=0,to=200,variable=self.stop_value,command=self.move_frames_stop)
         stop_scale.grid(row=1,column=2)
