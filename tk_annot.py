@@ -15,6 +15,10 @@ class Annotator:
     def __init__(self):
         self.root = Tk()
         self.root.title("Yawdd Annotator")
+        self.root.bind("<Left>",self.leftPress)
+        self.root.bind("<Right>",self.rightPress)
+        self.root.bind("<Up>",self.upPress)
+        self.root.bind("<Down>",self.downPress)
         self.create_mainframes()
         self.create_button_widgets()
         self.create_image_widgets()
@@ -23,6 +27,46 @@ class Annotator:
         self.gt_dir = None
         self.cv2_version = self.get_opencv_version()
 
+    def leftPress(self,event):
+        print "Left key pressed" 
+
+        frame_num = self.start_value.get()
+        next_frame = np.round(frame_num) -1
+        if next_frame < 0:
+            next_frame =0
+        self.current_clip['activeframe'] = next_frame
+        self.start_value.set(next_frame)
+        self.display_image() 
+
+
+    def rightPress(self,event):
+        print "Right key pressed" 
+        frame_num = self.start_value.get()
+        next_frame = np.round(frame_num) +1
+        if next_frame < 0:
+            next_frame =0
+        self.current_clip['activeframe'] = next_frame
+        self.start_value.set(next_frame)
+        self.display_image() 
+
+    def upPress(self,event):
+        print "Up key pressed" 
+        frame_num = self.stop_value.get()
+        next_frame = np.round(frame_num) -1
+        if next_frame < 0:
+            next_frame =0
+        self.current_clip['activeframe'] = next_frame
+        self.stop_value.set(next_frame)
+        self.display_image() 
+
+    def downPress(self,event):
+        print "Down key pressed" 
+        frame_num = self.stop_value.get()
+        next_frame = np.round(frame_num) +1
+        self.current_clip['activeframe'] = next_frame
+        self.stop_value.set(next_frame)
+        self.display_image() 
+        
 
     def get_opencv_version(self):
         version = cv2.__version__.split('.')
@@ -224,17 +268,14 @@ class Annotator:
 
     def move_frames_start(self,val):
         frame_num = self.start_value.get()
-        print frame_num , val
         self.current_clip['activeframe'] = np.round(float(val))
         self.display_image() 
 
     def move_frames_stop(self,val):
-        frame_num = self.stop_value.get()
-        print frame_num , val
         self.current_clip['activeframe'] = np.round(float(val))
         self.display_image()
 
- 
+
     def create_image_widgets(self):
         
         sample_image=cv2.imread('./yaww_sample.png')
