@@ -10,6 +10,18 @@ import cv2
 import numpy as np
 from sklearn.externals import joblib
 import pdb
+import dlib
+
+def detectFace(img):
+    detector = dlib.get_frontal_face_detector()
+    dets = detector(img,1)
+    bboxs = np.zeros((len(dets),4))
+    for i, d in enumerate(dets):
+        bboxs[i,0] = d.left();
+        bboxs[i,1] = d.right();
+        bboxs[i,2] = d.top();
+        bboxs[i,3] = d.bottom();
+    return bboxs;
 
 class Annotator:
     def __init__(self):
@@ -115,6 +127,9 @@ class Annotator:
             print self.current_clip['activeframe'] , self.current_clip['num_frames']
             return
         print frame.shape
+        bboxs = detectFace(frame)
+        if (bboxs.shape[0] > 0):
+            cv2.rectangle(frame, (int(bboxs[0,0]), int(bboxs[0,2])), (int(bboxs[0,1]), int(bboxs[0,3])), (0,0,255), 2)
         tk_image = self.get_tk_image(frame)
         current_gt = self.current_clip['gt'][self.get_active_frame()]
         self.action.set(current_gt)
