@@ -127,21 +127,21 @@ class Annotator:
             print self.current_clip['activeframe'] , self.current_clip['num_frames']
             return
         print frame.shape
-        bboxs = detectFace(frame)
-        if (bboxs.shape[0] > 0):
-            cv2.rectangle(frame, (int(bboxs[0,0]), int(bboxs[0,2])), (int(bboxs[0,1]), int(bboxs[0,3])), (0,0,255), 2)
-        tk_image = self.get_tk_image(frame)
-        current_gt = self.current_clip['gt'][self.get_active_frame()]
-        self.action.set(current_gt)
-        self.image_label.configure(image = tk_image)
-        self.image_label.image=tk_image
-        
         ptr = self.start_value.get()
         print ptr
         #self.start_label.configure(text=ptr)
         ptr = self.stop_value.get()
         print ptr
         #self.stop_label.configure(text=ptr)
+        #bboxs = detectFace(frame)
+        #if (bboxs.shape[0] > 0):
+        #    cv2.rectangle(frame, (int(bboxs[0,0]), int(bboxs[0,2])), (int(bboxs[0,1]), int(bboxs[0,3])), (0,0,255), 2)
+        tk_image = self.get_tk_image(frame)
+        current_gt = self.current_clip['gt'][self.get_active_frame()]
+        self.action.set(current_gt)
+        self.image_label.configure(image = tk_image)
+        self.image_label.image=tk_image
+        
 
     def load_action(self):
         if self.gt_dir is None:
@@ -170,7 +170,6 @@ class Annotator:
         self.current_clip['num_frames'] = int(num_frames)
         self.current_clip['name'] =clip_name
         self.current_clip['activeframe']=0
-
         self.load_action()
         self.display_image()
 
@@ -178,6 +177,13 @@ class Annotator:
         self.stop_scale.configure(to=num_frames)
         self.start_value.set(0)
         self.stop_value.set(0)
+
+    def file_callback(self):
+        source_file = filedialog.askopenfilename()
+        self.video_files = [source_file]
+        print source_file
+        self.current_clip_index=0
+        self.update_current_clip(self.video_files[self.current_clip_index]) 
 
     def dir_callback(self):
         self.source_dir = filedialog.askdirectory()
@@ -195,6 +201,9 @@ class Annotator:
     def gt_dir_callback(self):
         self.gt_dir = filedialog.askdirectory()
         self.load_action()
+
+    def clear(self):
+        self.current_clip['gt'][:] =[1] * (self.current_clip['num_frames'])
 
     def annotate(self):
         start = int(self.start_scale.get())
@@ -236,6 +245,13 @@ class Annotator:
         source_dir_button.columnconfigure(0,weight=1)
         source_dir_button.rowconfigure(0,weight=1)
     
+        source_file_button = ttk.Button(self.buttons_frame,text='Open Video File',command=self.file_callback)
+        source_file_button.grid(column=1,row=0)
+        source_file_button.columnconfigure(0,weight=1)
+        source_file_button.rowconfigure(0,weight=1)
+
+
+
         gt_dir_button = ttk.Button(self.buttons_frame,text='Open ground truth Directory', command=self.gt_dir_callback)
         gt_dir_button.grid(column=2,row=0)
         gt_dir_button.columnconfigure(0,weight=1)
@@ -270,8 +286,15 @@ class Annotator:
         annotate_button.columnconfigure(0,weight=1)
         annotate_button.rowconfigure(0,weight=1)
 
+
+        annotate_button = ttk.Button(self.buttons_frame,text="Clear",command=self.clear)
+        annotate_button.grid(column=2,row=2)
+        annotate_button.columnconfigure(0,weight=1)
+        annotate_button.rowconfigure(0,weight=1)
+
+
         save_button = ttk.Button(self.buttons_frame,text="Save",command=self.save_gt)
-        save_button.grid(column=2,row=2)
+        save_button.grid(column=3,row=2)
         save_button.columnconfigure(0,weight=1)
         save_button.rowconfigure(0,weight=1)
 
