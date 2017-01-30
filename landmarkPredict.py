@@ -74,9 +74,9 @@ def recoverPart(point,bbox,left,right,top,bottom,img_height,img_width,height,wid
 def getRGBTestPart(bbox,left,right,top,bottom,img,height,width):
     largeBBox = getCutSize(bbox,left,right,top,bottom)
     retiBBox = retifyBBox(img,largeBBox)
-    # cv2.rectangle(img, (int(retiBBox[0]), int(retiBBox[2])), (int(retiBBox[1]), int(retiBBox[3])), (0,0,255), 2)
-    # cv2.imshow('f',img)
-    # cv2.waitKey(0)
+    cv2.rectangle(img, (int(retiBBox[0]), int(retiBBox[2])), (int(retiBBox[1]), int(retiBBox[3])), (0,0,255), 2)
+    cv2.imshow('f',img)
+    cv2.waitKey(0)
     face=img[retiBBox[2]:retiBBox[3],retiBBox[0]:retiBBox[1],:]
     face = cv2.resize(face,(height,width),interpolation = cv2.INTER_AREA)
     face=face.astype('float32')
