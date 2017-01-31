@@ -224,10 +224,11 @@ class Annotator:
         clip_name = clip_name[-1].split('.')[0]
         gt_path = os.path.join(self.gt_dir,clip_name)
         print clip_name
-        #gt_file = open(gt_path,'w')
-        #for i,gt in enumerate(self.current_clip['gt']):
-        #    gt_file.write(("%d,%d\n"%(i,gt)))
-        #gt_file.close()
+        filename = gt_path + '.txt'
+        gt_file = open(filename,'w')
+        for i,gt in enumerate(self.current_clip['gt']):
+            gt_file.write(("%d,%d\n"%(i,gt)))
+        gt_file.close()
         joblib.dump(self.current_clip['gt'],gt_path)
         
     def get_next_clip(self):
