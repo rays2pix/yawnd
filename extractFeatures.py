@@ -43,7 +43,7 @@ class LNET:
 
     def caffe_init(self):
         self.vgg_point_net=caffe.Net(vgg_point_MODEL_FILE,vgg_point_PRETRAINED,caffe.TEST)
-        caffe.set_mode_cpu()
+        caffe.set_mode_gpu()
         proto_data = open(mean_filename, "rb").read()
         self.a = caffe.io.caffe_pb2.BlobProto.FromString(proto_data)
         self.mean = caffe.io.blobproto_to_array(self.a)[0]
@@ -138,10 +138,21 @@ def get_features(clip,lnet,output_dir):
     return features
 
 
+
+def checkIfProcessed(clip,output_dir):
+    output_files = glob.glob(os.path.join(output_dir,'*'))
+    output_files =[os.path.split(files)[-1] for files in output_files]
+    #print output_files
+    filename = os.path.split(clip)
+    clip_name=filename[1].split('.')[0]
+    return clip_name in output_files
+
 def process_input_dir(input_dir,output_dir,lnet):
     video_clips = glob.glob(os.path.join(input_dir,'*.avi'))
     for clip in video_clips:
-        features = get_features(clip,lnet,output_dir)
+        if not  checkIfProcessed(clip,output_dir):
+            print 'should process %s' % clip            
+            features = get_features(clip,lnet,output_dir)
 
 
 
