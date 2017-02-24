@@ -5,7 +5,7 @@ import os
 import sys
 import numpy as np
 import cv2
-import caffe
+#import caffe
 import dlib
 import matplotlib.pyplot as plt
 from sklearn.externals import joblib
@@ -75,8 +75,9 @@ def getRGBTestPart(bbox,left,right,top,bottom,img,height,width):
     largeBBox = getCutSize(bbox,left,right,top,bottom)
     retiBBox = retifyBBox(img,largeBBox)
     cv2.rectangle(img, (int(retiBBox[0]), int(retiBBox[2])), (int(retiBBox[1]), int(retiBBox[3])), (0,0,255), 2)
-    cv2.imshow('f',img)
-    cv2.waitKey(0)
+    #cv2.imshow('f',img)
+    #cv2.waitKey(0)
+    retiBBox = [int(i) for i in retiBBox]
     face=img[retiBBox[2]:retiBBox[3],retiBBox[0]:retiBBox[1],:]
     face = cv2.resize(face,(height,width),interpolation = cv2.INTER_AREA)
     face=face.astype('float32')
@@ -201,6 +202,7 @@ def get_landmarks(image):
         blobName = '68point'
         data4DL = np.zeros([faces.shape[0],1,1,1])
         vgg_point_net.set_input_arrays(faces.astype(np.float32),data4DL.astype(np.float32))
+        pdb.set_trace()
         vgg_point_net.forward()
         predictpoints[i] = vgg_point_net.blobs[blobName].data[0]
 
@@ -260,7 +262,7 @@ def predictImage(filename):
             normalface[2] = colorface[:,:,2]
             normalface = normalface - mean
             faces[0] = normalface
-
+            pdb.set_trace()
             blobName = '68point'
             data4DL = np.zeros([faces.shape[0],1,1,1])
             vgg_point_net.set_input_arrays(faces.astype(np.float32),data4DL.astype(np.float32))

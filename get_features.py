@@ -10,7 +10,7 @@ from sklearn.externals import joblib
 vgg_height = 224
 vgg_width = 224
 pointNum =68
-
+import pdb
 
 M_left = -0.15
 M_right = +1.15
@@ -38,7 +38,7 @@ class Landmarks:
     def get_landmarks(self,image):
         bboxs = detectFace(image)
         faceNum = bboxs.shape[0]
-        faces = np.zeros((1,3,vgg_height,vgg_width))
+        faces = np.zeros((2,3,vgg_height,vgg_width))
         predictpoints = np.zeros((faceNum,pointNum*2))
         predictpose = np.zeros((faceNum,3))
         imgsize = np.zeros((2))
@@ -58,7 +58,11 @@ class Landmarks:
             normalface[2] = colorface[:,:,2]
             normalface = normalface - self.mean
             faces[0] = normalface
-
+            faces[1] = normalface
+            pdb.set_trace() 
+            self.vgg_point_net.blobs['data'].reshape(200,3,480,640)
+            #self.vgg_point_net.blobs['label'].reshape(2,)
+            #self.vgg_point_net.reshape() 
             blobName = '68point'
             data4DL = np.zeros([faces.shape[0],1,1,1])
             self.vgg_point_net.set_input_arrays(faces.astype(np.float32),data4DL.astype(np.float32))
@@ -68,12 +72,16 @@ class Landmarks:
             blobName = 'poselayer'
             pose_prediction = self.vgg_point_net.blobs[blobName].data
             predictpose[i] = pose_prediction * 50
-            #pdb.set_trace()
+            pdb.set_trace()
         predictpoints = predictpoints * vgg_height/2 + vgg_width/2
         level1Point = batchRecoverPart(predictpoints,bboxs,TotalSize,M_left,M_right,M_top,M_bottom,vgg_height,vgg_width)
 
         landmarks.append([faceNum,level1Point,predictpose])
         return landmarks,colorface
+
+
+def get_landmarks_batch(frames):
+    print len(frames)
 
 
 def get_features(input_dir,output_dir,lnet):
@@ -90,17 +98,24 @@ def get_features(input_dir,output_dir,lnet):
         landmarks['nframes'] = nframes
         n=0
         print landmarks['name']
+        frames = []
         while True:
             ret,frame = capture.read()
             if ret is not True:
                 break
-            n=n+1    
-            print n,frame.shape
-            lmarks = lnet.get_landmarks(frame)
-            landmarks[n],face= lmarks
-            image_name = '%s_%d.png' % (clip_name,n)
-            cv2.imwrite(os.path.join(output_dir,"faces",image_name),face)
-            #    print "frame %s has no  det" % n
+            n=n+1
+            lnet.get_landmarks(frame) 
+            if  n>0 and n%4==0:
+                frames.append( frame  )
+                lmarks = get_landmarks_batch(frames)
+                frames =[]
+                #landmarks[n],face= lmarks
+            #image_name = '%s_%d.png' % (clip_name,n)
+            #cv2.imwrite(os.path.join(output_dir,"faces",image_name),face)
+            else: 
+                frames.append( frame  )
+                #print frames[n%4].shape, frame.shape 
+        #    print "frame %s has no  det" % n
                 
         #print clip_name        
         clip_name = '%s' % clip_name
@@ -125,4 +140,5 @@ if __name__ == "__main__":
     input_dir = sys.argv[1]
     output_dir = sys.argv[2]
     landmarks = Landmarks(input_dir)
+    pdb.set_trace()
     get_features(input_dir,output_dir,landmarks)
